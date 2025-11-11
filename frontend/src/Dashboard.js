@@ -8,11 +8,25 @@ function Dashboard() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     if (!token) navigate("/");
+    decodeToken();
     fetchPosts();
+    // eslint-disable-next-line
   }, []);
+
+  const decodeToken = () => {
+    try {
+      const tokenParts = JSON.parse(atob(token.split(".")[1]));
+      setUserId(tokenParts.id);
+    } catch (err) {
+      console.error("Failed to decode token");
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -20,34 +34,40 @@ function Dashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPosts(res.data);
-    } catch {
+    } catch (e) {
+      console.error(e);
       alert("Failed to fetch posts.");
     }
   };
 
   const createPost = async () => {
+    if (!newTitle.trim()) return alert("Enter title");
+    setLoading(true);
     try {
       await axios.post(
         "http://localhost:4000/api/posts",
         { title: newTitle },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Post created!");
+      setNewTitle("");
       fetchPosts();
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("You do not have permission to create posts.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const deletePost = async (id) => {
+    if (!window.confirm("Delete this post?")) return;
     try {
       await axios.delete(`http://localhost:4000/api/posts/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Post deleted!");
       fetchPosts();
-    } catch {
-      alert("You do not have permission to delete posts.");
+    } catch (err) {
+      alert(err.response?.data?.message || "You do not have permission to delete posts.");
     }
   };
 
@@ -57,42 +77,59 @@ function Dashboard() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Welcome, {role}</h2>
-      <button onClick={logout}>Logout</button>
-
-      <br /><br />
-
-      {role !== "Viewer" && (
+    <div className="app-shell">
+      <div className="header">
         <div>
-          <input
-            placeholder="New post title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            style={{ padding: "8px", width: "200px" }}
-          />
-          <button onClick={createPost} style={{ padding: "8px 16px" }}>
-            Create Post
-          </button>
+          <div className="title">Dashboard</div>
+          <div style={{ color: "var(--muted)", fontSize: 13 }}>Manage posts</div>
         </div>
-      )}
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="role-badge">{role || "Guest"}</div>
+          <button className="btn ghost" onClick={logout}>Logout</button>
+        </div>
+      </div>
 
-      <h3>All Posts:</h3>
-      <ul style={{ listStyle: "none" }}>
-        {posts.map((p) => (
-          <li key={p.id}>
-            {p.title} ({p.authorRole})
-            {role === "Admin" && (
-              <button
-                onClick={() => deletePost(p.id)}
-                style={{ marginLeft: "10px", padding: "4px 8px" }}
-              >
-                Delete
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="card">
+        {role !== "Viewer" ? (
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              className="input"
+              placeholder="New post title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+            <button className="btn" onClick={createPost} disabled={loading}>
+              {loading ? "Creating..." : "Create"}
+            </button>
+          </div>
+        ) : (
+          <div style={{ color: "var(--muted)" }}>You have read-only access.</div>
+        )}
+
+        <div className="posts-grid">
+          {posts.length === 0 && (
+            <div style={{ color: "var(--muted)", padding: 12 }}>No posts yet</div>
+          )}
+
+          {posts.map((p) => (
+            <div className="post" key={p.id}>
+              <h4>{p.title}</h4>
+              <small>By: {p.authorRole || "unknown"}</small>
+              <div className="controls">
+                {(role === "Admin" || (role === "Editor" && p.authorId === userId)) ? (
+                  <button className="btn" onClick={() => deletePost(p.id)}>
+                    Delete
+                  </button>
+                ) : (
+                  <button className="btn secondary" disabled title="No permission to delete">
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

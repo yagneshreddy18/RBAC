@@ -1,27 +1,27 @@
 const jwt = require("jsonwebtoken");
-const SECRET = "mysecretkey";
+const SECRET = "mysecretkey"; // same as in authRoutes.js
 
-function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ message: "No token provided" });
-
-  const token = authHeader.split(" ")[1];
+// Verify JWT token
+exports.verifyToken = (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, SECRET);
-    req.user = decoded;
-    next();
-  } catch {
-    res.status(401).json({ message: "Invalid token" });
-  }
-}
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Access denied, token missing" });
 
-function authorizeRoles(...allowed) {
+    const decoded = jwt.verify(token, SECRET);
+    req.user = decoded; // attach id and role from JWT
+    next();
+  } catch (err) {
+    console.error("Token verification failed:", err.message);
+    res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+
+// Check if user has allowed role(s)
+exports.authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!allowed.includes(req.user.role)) {
-      return res.status(403).json({ message: "Access denied" });
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Access denied, insufficient permissions" });
     }
     next();
   };
-}
-
-module.exports = { verifyToken, authorizeRoles };
+};
