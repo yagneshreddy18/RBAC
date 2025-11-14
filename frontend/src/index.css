@@ -21,14 +21,12 @@ body{
   -moz-osx-font-smoothing:grayscale;
 }
 
-/* container */
 .app-shell{
   max-width:980px;
   margin:36px auto;
   padding:20px;
 }
 
-/* card */
 .card{
   background:var(--card);
   border-radius:var(--radius);
@@ -36,7 +34,6 @@ body{
   padding:20px;
 }
 
-/* header */
 .header {
   display:flex;
   justify-content:space-between;
@@ -79,8 +76,6 @@ body{
   box-shadow:0 0 0 4px rgba(37,99,235,0.08);
   border-color:var(--accent);
 }
-
-/* buttons */
 .btn {
   padding:8px 16px;
   border-radius:8px;
