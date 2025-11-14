@@ -16,7 +16,6 @@ function Dashboard() {
     if (!token) navigate("/");
     decodeToken();
     fetchPosts();
-    // eslint-disable-next-line
   }, []);
 
   const decodeToken = () => {
@@ -30,9 +29,12 @@ function Dashboard() {
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/posts", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        "https://rbac-backend-vi2k.onrender.com/api/posts",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setPosts(res.data);
     } catch (e) {
       console.error(e);
@@ -45,7 +47,7 @@ function Dashboard() {
     setLoading(true);
     try {
       await axios.post(
-        "http://localhost:4000/api/posts",
+        "https://rbac-backend-vi2k.onrender.com/api/posts",
         { title: newTitle },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -62,12 +64,18 @@ function Dashboard() {
   const deletePost = async (id) => {
     if (!window.confirm("Delete this post?")) return;
     try {
-      await axios.delete(`http://localhost:4000/api/posts/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `https://rbac-backend-vi2k.onrender.com/api/posts/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       fetchPosts();
     } catch (err) {
-      alert(err.response?.data?.message || "You do not have permission to delete posts.");
+      alert(
+        err.response?.data?.message ||
+          "You do not have permission to delete posts."
+      );
     }
   };
 
@@ -81,11 +89,15 @@ function Dashboard() {
       <div className="header">
         <div>
           <div className="title">Dashboard</div>
-          <div style={{ color: "var(--muted)", fontSize: 13 }}>Manage posts</div>
+          <div style={{ color: "var(--muted)", fontSize: 13 }}>
+            Manage posts
+          </div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <div className="role-badge">{role || "Guest"}</div>
-          <button className="btn ghost" onClick={logout}>Logout</button>
+          <button className="btn ghost" onClick={logout}>
+            Logout
+          </button>
         </div>
       </div>
 
@@ -103,25 +115,35 @@ function Dashboard() {
             </button>
           </div>
         ) : (
-          <div style={{ color: "var(--muted)" }}>You have read-only access.</div>
+          <div style={{ color: "var(--muted)" }}>
+            You have read-only access.
+          </div>
         )}
 
         <div className="posts-grid">
           {posts.length === 0 && (
-            <div style={{ color: "var(--muted)", padding: 12 }}>No posts yet</div>
+            <div style={{ color: "var(--muted)", padding: 12 }}>
+              No posts yet
+            </div>
           )}
 
           {posts.map((p) => (
             <div className="post" key={p.id}>
               <h4>{p.title}</h4>
               <small>By: {p.authorRole || "unknown"}</small>
+
               <div className="controls">
-                {(role === "Admin" || (role === "Editor" && p.authorId === userId)) ? (
+                {(role === "Admin" ||
+                  (role === "Editor" && p.authorId === userId)) ? (
                   <button className="btn" onClick={() => deletePost(p.id)}>
                     Delete
                   </button>
                 ) : (
-                  <button className="btn secondary" disabled title="No permission to delete">
+                  <button
+                    className="btn secondary"
+                    disabled
+                    title="No permission to delete"
+                  >
                     Delete
                   </button>
                 )}
@@ -134,4 +156,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard;   
+export default Dashboard;

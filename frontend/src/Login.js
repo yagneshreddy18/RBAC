@@ -12,17 +12,22 @@ function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:4000/api/auth/login", {
-        email,
-        password,
-      });
+      const res = await axios.post(
+        "https://rbac-backend-vi2k.onrender.com/api/auth/login",
+        {
+          email,
+          password,
+        }
+      );
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
       const message =
-        err.response?.data?.message || "Login failed! Check server or credentials.";
+        err.response?.data?.message ||
+        "Login failed! Check server or credentials.";
       alert(message);
     } finally {
       setLoading(false);
@@ -31,10 +36,12 @@ function Login() {
 
   return (
     <div className="app-shell">
-      <div className="card" style={{ maxWidth:420, margin:"36px auto" }}>
+      <div className="card" style={{ maxWidth: 420, margin: "36px auto" }}>
         <div style={{ textAlign: "center", marginBottom: 8 }}>
           <div className="title">Role-Based Access Control</div>
-          <div style={{ color: "var(--muted)", marginTop:6 }}>Sign in to continue</div>
+          <div style={{ color: "var(--muted)", marginTop: 6 }}>
+            Sign in to continue
+          </div>
         </div>
 
         <form className="form-center" onSubmit={handleLogin}>
@@ -62,7 +69,10 @@ function Login() {
             <button
               type="button"
               className="btn secondary"
-              onClick={() => { setEmail("viewer@example.com"); setPassword("viewer123"); }}
+              onClick={() => {
+                setEmail("viewer@example.com");
+                setPassword("viewer123");
+              }}
             >
               Quick Viewer
             </button>
